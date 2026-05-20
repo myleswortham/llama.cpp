@@ -105,7 +105,11 @@ void llama_model_t5::load_arch_tensors(llama_model_loader &) {
         layer.ffn_up   = create_tensor(tn(LLM_TENSOR_DEC_FFN_UP,   "weight", i), {n_embd,   n_ff}, 0);
     }
 }
+template <>
+llama_model_t5::graph<false>::graph(const llama_model & model, const llm_graph_params & params);
 
+template <>
+llama_model_t5::graph<true>::graph(const llama_model & model, const llm_graph_params & params);
 std::unique_ptr<llm_graph_context> llama_model_t5::build_arch_graph(const llm_graph_params & params) const {
     switch (params.gtype) {
         case LLM_GRAPH_TYPE_ENCODER:

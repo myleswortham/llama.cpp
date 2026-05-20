@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cpp-httplib/httplib.h>
+#include <httplib.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
