@@ -250,6 +250,10 @@ set(LLAMA_INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR} CACHE PATH "Location o
 set(LLAMA_LIB_INSTALL_DIR     ${CMAKE_INSTALL_LIBDIR}     CACHE PATH "Location of library files")
 set(LLAMA_BIN_INSTALL_DIR     ${CMAKE_INSTALL_BINDIR}     CACHE PATH "Location of binary  files")
 
+# Explicitly derive the nested subdirectory paths from the base installation variables
+set(LLAMA_NESTED_INCLUDE_DIR "${LLAMA_INCLUDE_INSTALL_DIR}/llama")
+set(LLAMA_COMMON_INCLUDE_DIR "${LLAMA_INCLUDE_INSTALL_DIR}/llama/llama-common")
+
 set(LLAMA_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/llama.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/llama-cpp.h)
@@ -258,17 +262,37 @@ set_target_properties(llama
     PROPERTIES
         PUBLIC_HEADER "${LLAMA_PUBLIC_HEADERS}")
 
-install(TARGETS llama LIBRARY PUBLIC_HEADER)
+# Use the variables to dictate the actual installation locations
+install(TARGETS llama
+    ARCHIVE DESTINATION ${LLAMA_LIB_INSTALL_DIR}
+    LIBRARY DESTINATION ${LLAMA_LIB_INSTALL_DIR}
+    RUNTIME DESTINATION ${LLAMA_BIN_INSTALL_DIR}
+    PUBLIC_HEADER DESTINATION ${LLAMA_NESTED_INCLUDE_DIR}
+)
 
 if (LLAMA_BUILD_COMMON)
-    install(TARGETS llama-common LIBRARY)
+    install(TARGETS llama-common
+        ARCHIVE DESTINATION ${LLAMA_LIB_INSTALL_DIR}
+        LIBRARY DESTINATION ${LLAMA_LIB_INSTALL_DIR}
+        RUNTIME DESTINATION ${LLAMA_BIN_INSTALL_DIR}
+    )
+
+    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/common/"
+        DESTINATION ${LLAMA_COMMON_INCLUDE_DIR}
+        FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.hpp"
+    )
 endif()
 
+# Pass the synchronized path variables into the package configuration generator
 configure_package_config_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/llama-config.cmake.in
         ${CMAKE_CURRENT_BINARY_DIR}/llama-config.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/llama
     PATH_VARS LLAMA_INCLUDE_INSTALL_DIR
+              LLAMA_NESTED_INCLUDE_DIR
+              LLAMA_COMMON_INCLUDE_DIR
               LLAMA_LIB_INSTALL_DIR
               LLAMA_BIN_INSTALL_DIR )
 

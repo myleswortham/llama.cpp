@@ -67,17 +67,19 @@ endif()
 set(MTMD_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/mtmd.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mtmd-helper.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/debug/mtmd-debug.h
     )
 
 set_target_properties(mtmd
     PROPERTIES
     PUBLIC_HEADER "${MTMD_PUBLIC_HEADERS}")
 
-set_target_properties(mtmd
-    PROPERTIES
-    PRIVATE_HEADER debug/mtmd-debug.h)
 
-install(TARGETS mtmd LIBRARY PUBLIC_HEADER)
+# Explicitly direct the mtmd public headers to the nested llama subdirectory
+install(TARGETS mtmd
+    LIBRARY DESTINATION lib
+    PUBLIC_HEADER DESTINATION include/llama/mtmd
+)
 
 if (NOT MSVC)
     # for stb_image.h and miniaudio.h
