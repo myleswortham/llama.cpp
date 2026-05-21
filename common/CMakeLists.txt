@@ -149,7 +149,8 @@ if (LLAMA_LLGUIDANCE)
         GIT_TAG d795912fedc7d393de740177ea9ea761e7905774
         PREFIX ${CMAKE_BINARY_DIR}/llguidance
         SOURCE_DIR ${LLGUIDANCE_SRC}
-        BUILD_IN_SOURCE TRUE
+        BUILD_IN_SOURCE TRUE        
+        BUILD_ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$ENV{CARGO_BIN}"
         CONFIGURE_COMMAND ""
         BUILD_COMMAND cargo build --release --package llguidance
         INSTALL_COMMAND ""
