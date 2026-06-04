@@ -39,7 +39,7 @@ set(OUTPUT_FILE   "${CMAKE_CURRENT_BINARY_DIR}/build-info.cpp")
 configure_file(${TEMPLATE_FILE} ${OUTPUT_FILE})
 
 set(TARGET llama-common-base)
-add_library(${TARGET} STATIC ${OUTPUT_FILE})
+add_library(${TARGET} OBJECT ${OUTPUT_FILE})
 
 target_include_directories(${TARGET} PUBLIC .)
 
@@ -139,17 +139,14 @@ target_link_libraries(${TARGET} PRIVATE cpp-httplib)
 
 if (LLAMA_LLGUIDANCE)
     include(ExternalProject)
-    set(LLGUIDANCE_SRC ${CMAKE_BINARY_DIR}/llguidance/source)
+    set(LLGUIDANCE_SRC $ENV{ROOT_DIR}/projects/third-party/llguidance)
     set(LLGUIDANCE_PATH ${LLGUIDANCE_SRC}/target/release)
     set(LLGUIDANCE_LIB_NAME "${CMAKE_STATIC_LIBRARY_PREFIX}llguidance${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
     ExternalProject_Add(llguidance_ext
-        GIT_REPOSITORY https://github.com/guidance-ai/llguidance
-        # v1.0.1:
-        GIT_TAG d795912fedc7d393de740177ea9ea761e7905774
         PREFIX ${CMAKE_BINARY_DIR}/llguidance
         SOURCE_DIR ${LLGUIDANCE_SRC}
-        BUILD_IN_SOURCE TRUE        
+        BUILD_IN_SOURCE TRUE
         BUILD_ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$ENV{CARGO_BIN}"
         CONFIGURE_COMMAND ""
         BUILD_COMMAND cargo build --release --package llguidance
@@ -168,6 +165,11 @@ if (LLAMA_LLGUIDANCE)
     if (WIN32)
         target_link_libraries(${TARGET} PRIVATE ws2_32 userenv ntdll bcrypt)
     endif()
+    target_include_directories(${TARGET} PRIVATE "$ENV{VCPKG_BASE}/include")
+    target_compile_definitions(${TARGET} PUBLIC LLAMA_USE_LLGUIDANCE)
+
+    install(FILES "${LLGUIDANCE_PATH}/${LLGUIDANCE_LIB_NAME}" DESTINATION "$ENV{VCPKG_BASE}/lib")
+    install(FILES "${LLGUIDANCE_PATH}/llguidance.h" DESTINATION "$ENV{VCPKG_BASE}/include")
 endif()
 
 target_link_libraries(${TARGET} PUBLIC llama Threads::Threads)
