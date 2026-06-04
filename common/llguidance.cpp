@@ -142,10 +142,15 @@ static LlgTokenizer * llama_sampler_llg_new_tokenizer(const llama_vocab * vocab)
     if (vocab_cache == vocab) {
         return llg_clone_tokenizer(tokenizer_cache);
     }
+    std::vector<uint32_t> eos_tokens;
+    auto tok_eot = llama_vocab_eot(vocab);
+    if (tok_eot != LLAMA_TOKEN_NULL) {
+        eos_tokens.push_back((uint32_t)tok_eot);
+    }
 
-    auto tok_eos = llama_vocab_eot(vocab);
-    if (tok_eos == LLAMA_TOKEN_NULL) {
-        tok_eos = llama_vocab_eos(vocab);
+    auto tok_eos = llama_vocab_eos(vocab);
+    if (tok_eos != LLAMA_TOKEN_NULL && tok_eos != tok_eot) {
+        eos_tokens.push_back((uint32_t)tok_eos);
     }
 
     size_t vocab_size = llama_vocab_n_tokens(vocab);
@@ -183,9 +188,10 @@ static LlgTokenizer * llama_sampler_llg_new_tokenizer(const llama_vocab * vocab)
         offset += size;
     }
 
-    LlgTokenizerInit tinit = {
+    LlgTokenizerInitV2 tinit = {
+        /* .struct_size                        = */ sizeof(LlgTokenizerInitV2),
         /* .vocab_size                         = */ (uint32_t) vocab_size,
-        /* .tok_eos                            = */ (uint32_t) tok_eos,
+        /* .tok_eos                            = */ eos_tokens[0],
         /* .token_lens                         = */ token_lens,
         /* .token_bytes                        = */ token_bytes,
         /* .tokenizer_json                     = */ nullptr,
@@ -194,10 +200,12 @@ static LlgTokenizer * llama_sampler_llg_new_tokenizer(const llama_vocab * vocab)
         /* .use_approximate_greedy_tokenize_fn = */ false,
         /* .tokenize_user_data                 = */ vocab,
         /* .slices                             = */ nullptr,
+        /* .tok_eos_extra                      = */ eos_tokens.size() > 1 ? eos_tokens.data() + 1 : nullptr,
+        /* .tok_eos_extra_count                = */ eos_tokens.size() > 1 ? (uint32_t)(eos_tokens.size() - 1) : 0,
     };
 
     char           error_buffer[1024];
-    LlgTokenizer * tokenizer = llg_new_tokenizer(&tinit, error_buffer, sizeof(error_buffer));
+    LlgTokenizer * tokenizer = llg_new_tokenizer_v2(&tinit, error_buffer, sizeof(error_buffer));
 
     delete[] token_bytes;
     delete[] token_lens;
