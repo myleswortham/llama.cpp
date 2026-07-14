@@ -78,6 +78,12 @@ void llama_model_dflash::load_arch_tensors(llama_model_loader &) {
     }
 }
 
+template <>
+llama_model_dflash::graph<false>::graph(const llama_model & model, const llm_graph_params & params);
+
+template <>
+llama_model_dflash::graph<true>::graph(const llama_model & model, const llm_graph_params & params);
+
 std::unique_ptr<llm_graph_context> llama_model_dflash::build_arch_graph(const llm_graph_params & params) const {
     switch (params.gtype) {
         case LLM_GRAPH_TYPE_ENCODER:

@@ -100,6 +100,12 @@ void llama_model_eagle3::load_arch_tensors(llama_model_loader &) {
     }
 }
 
+template <>
+llama_model_eagle3::graph<false>::graph(const llama_model & model, const llm_graph_params & params);
+
+template <>
+llama_model_eagle3::graph<true>::graph(const llama_model & model, const llm_graph_params & params);
+
 std::unique_ptr<llm_graph_context> llama_model_eagle3::build_arch_graph(const llm_graph_params & params) const {
     switch (params.gtype) {
         case LLM_GRAPH_TYPE_ENCODER:
